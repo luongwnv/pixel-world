@@ -1,0 +1,30 @@
+# Compiled output
+out
+dist
+node_modules
+*.tsbuildinfo
+
+# Logs
+/logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode-test/
+/.idea
+
+# Build artifacts
+*.vsix
+*.map
+
+# Environment files
+.env*
+!.env.example
+
+# Project-specific
+.claude/
+/sprites-export
