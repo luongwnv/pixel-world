@@ -710,10 +710,10 @@ export function OfficeCanvas({
                   officeState.reassignSeat(officeState.selectedAgentId, seatId);
                   officeState.selectedAgentId = null;
                   officeState.cameraFollowId = null;
-                  // Persist seat assignments (exclude sub-agents)
+                  // Persist seat assignments (exclude sub-agents and remote agents)
                   const seats: Record<number, { palette: number; seatId: string | null }> = {};
                   for (const ch of officeState.characters.values()) {
-                    if (ch.isSubagent) continue;
+                    if (ch.isSubagent || ch.isRemoteAgent) continue;
                     seats[ch.id] = { palette: ch.palette, seatId: ch.seatId };
                   }
                   vscode.postMessage({ type: 'saveAgentSeats', seats });

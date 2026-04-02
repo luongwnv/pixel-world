@@ -1,167 +1,106 @@
-<h1 align="center">
-    <a href="https://github.com/pablodelucca/pixel-agents/discussions">
-        <img src="webview-ui/public/banner.png" alt="Pixel Agents">
-    </a>
-</h1>
+# Pixel World
 
-<h2 align="center" style="padding-bottom: 20px;">
-  The game interface where AI agents build real things
-</h2>
+Pixel art office where your Claude Code agents come to life as animated characters.
 
-<div align="center" style="margin-top: 25px;">
-
-[![version](https://img.shields.io/endpoint?url=https%3A%2F%2Fgist.githubusercontent.com%2Fpablodelucca%2F3cd28398fa4a2c0a636e1d51d41aee39%2Fraw%2Fversion.json)](https://github.com/pablodelucca/pixel-agents/releases)
-[![marketplaces](https://img.shields.io/endpoint?url=https%3A%2F%2Fgist.githubusercontent.com%2Fpablodelucca%2F3cd28398fa4a2c0a636e1d51d41aee39%2Fraw%2Finstalls.json)](https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents)
-[![stars](https://img.shields.io/github/stars/pablodelucca/pixel-agents?logo=github&color=0183ff&style=flat)](https://github.com/pablodelucca/pixel-agents/stargazers)
-[![license](https://img.shields.io/github/license/pablodelucca/pixel-agents?color=0183ff&style=flat)](https://github.com/pablodelucca/pixel-agents/blob/main/LICENSE)
-[![good first issues](https://img.shields.io/github/issues/pablodelucca/pixel-agents/good%20first%20issue?color=7057ff&label=good%20first%20issues)](https://github.com/pablodelucca/pixel-agents/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
-
-</div>
-
-<div align="center">
-<a href="https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents">🛒 VS Code Marketplace</a> • <a href="https://github.com/pablodelucca/pixel-agents/discussions">💬 Discussions</a> • <a href="https://github.com/pablodelucca/pixel-agents/issues">🐛 Issues</a> • <a href="CONTRIBUTING.md">🤝 Contributing</a> • <a href="CHANGELOG.md">📋 Changelog</a>
-</div>
-
-<br/>
-
-Pixel Agents turns multi-agent AI systems into something you can actually see and manage. Each agent becomes a character in a pixel art office. They walk around, sit at their desk, and visually reflect what they are doing — typing when writing code, reading when searching files, waiting when it needs your attention.
-
-Right now it works as a VS Code extension with Claude Code. The vision though, is a fully agent-agnostic, platform-agnostic interface for orchestrating any AI agents, deployable anywhere.
-
-This is the source code for the free Pixel Agents extension for VS Code — install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents) or [Open VSX](https://open-vsx.org/extension/pablodelucca/pixel-agents) with the full furniture catalog included.
-
-![Pixel Agents screenshot](webview-ui/public/Screenshot.jpg)
+![Screenshot](webview-ui/public/Screenshot_v1.1.jpg)
 
 ## Features
 
-- **One agent, one character** — every Claude Code terminal gets its own animated character
-- **Live activity tracking** — characters animate based on what the agent is actually doing (writing, reading, running commands)
-- **Office layout editor** — design your office with floors, walls, and furniture using a built-in editor
-- **Speech bubbles** — visual indicators when an agent is waiting for input or needs permission
-- **Sound notifications** — optional chime when an agent finishes its turn
-- **Sub-agent visualization** — Task tool sub-agents spawn as separate characters linked to their parent
-- **Persistent layouts** — your office design is saved and shared across VS Code windows
-- **Diverse characters** — 6 diverse characters. These are based on the amazing work of [JIK-A-4, Metro City](https://jik-a-4.itch.io/metrocity-free-topdown-character-pack).
+- **Live Agent Visualization** — Each Claude Code terminal appears as an animated pixel art character walking, typing, and reading in your virtual office
+- **Auto-Detection** — New Claude Code sessions are automatically detected and spawn characters without manual setup
+- **Real-Time Tool Tracking** — See what each agent is doing: reading files, writing code, running bash commands, waiting for permission
+- **Cross-Window Sync** — Agents and user characters from other VS Code windows appear in your office with their correct appearance
+- **Interactive Office Editor** — Design your workspace with floor patterns, walls, furniture, and decorations
+- **Sound Notifications** — Audio chime when an agent completes its turn
+- **6 Character Palettes** — Diverse skins with automatic hue-shifting for additional agents beyond 6
+- **Sub-Agent Support** — Nested Task tool sub-agents spawn as child characters near their parent
+- **Layout Persistence** — Office layout saved to `~/.pixel-agents/layout.json`, shared across all workspaces
 
-<p align="center">
-  <img src="webview-ui/public/characters.png" alt="Pixel Agents characters" width="320" height="72" style="image-rendering: pixelated;">
-</p>
+## Install
 
-## Requirements
+Install from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=luongwnv.pixel-agents) or search "Pixel World" in the Extensions panel.
 
-- VS Code 1.105.0 or later
-- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed and configured
+## Usage
 
-## Getting Started
+1. Open the **Pixel World** panel (appears in the sidebar/panel area)
+2. Click **+ Agent** to launch a Claude Code terminal, or just start Claude Code from any terminal — characters are created automatically
+3. Click a character to focus its terminal. Hover to see detailed tool activity
+4. Click **Layout** to enter the office editor
 
-If you just want to use Pixel Agents, the easiest way is to download the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents). If you want to play with the code, develop, or contribute, then:
+### Layout Editor
 
-### Install from source
+| Tool | Action |
+|------|--------|
+| **Floor** | Paint floor tiles with 7 patterns + HSBC color sliders |
+| **Wall** | Click/drag to add walls, click existing walls to remove |
+| **Erase** | Set tiles to void (transparent, non-walkable) |
+| **Furniture** | Place items from the catalog. **R** to rotate, **T** to toggle on/off state |
+| **Select** | Drag furniture to move. Color sliders for selected items |
+| **Eyedropper** | Pick floor pattern/color or furniture type from placed items |
+
+- **Ctrl+Z / Ctrl+Y** — Undo / Redo (50 levels)
+- **Right-click** — Erase to void in floor/wall/erase tools
+- **Ghost border** — Click outside the grid to expand (up to 64×64)
+- **Esc** — Multi-stage exit: deselect → close tab → exit editor
+
+### Agent Interaction
+
+- **Click** a character to select and focus its terminal
+- **Click** an empty seat while a character is selected to reassign it
+- **Hover** over the status label to see full tool details
+- **Middle-mouse drag** to pan the camera
+- **+/−** buttons (top-right) to zoom
+
+## Configuration
+
+In VS Code Settings → "Pixel World":
+
+| Setting | Description |
+|---------|-------------|
+| `pixelAgents.claudeModel` | Claude model to use when launching agents (e.g. `claude-sonnet-4-6`). Leave empty for CLI default |
+
+## Build from Source
 
 ```bash
-git clone https://github.com/pablodelucca/pixel-agents.git
-cd pixel-agents
+# Install dependencies
 npm install
 cd webview-ui && npm install && cd ..
+
+# Build extension + webview
 npm run build
+
+# Development: watch mode
+npm run watch
 ```
 
-Then press **F5** in VS Code to launch the Extension Development Host.
+Press **F5** in VS Code to launch the Extension Development Host.
 
-### Usage
+## Architecture
 
-1. Open the **Pixel Agents** panel (it appears in the bottom panel area alongside your terminal)
-2. Click **+ Agent** to spawn a new Claude Code terminal and its character
-3. Start coding with Claude — watch the character react in real time
-4. Click a character to select it, then click a seat to reassign it
-5. Click **Layout** to open the office editor and customize your space
+```
+src/                          — Extension backend (Node.js, VS Code API)
+  extension.ts                — Entry: activate(), deactivate()
+  PixelAgentsViewProvider.ts  — WebviewViewProvider, message dispatch
+  agentManager.ts             — Terminal lifecycle, agent persistence
+  agentSyncManager.ts         — Cross-window agent sync via shared file
+  userSyncManager.ts          — Cross-window user character sync
+  fileWatcher.ts              — JSONL file watching + auto-detection
+  transcriptParser.ts         — JSONL parsing → webview messages
 
-## Layout Editor
+webview-ui/src/               — React + TypeScript (Vite)
+  App.tsx                     — Composition root
+  office/engine/              — Game loop, character FSM, renderer
+  office/editor/              — Layout editing tools
+  office/layout/              — Furniture catalog, pathfinding, serialization
+  office/sprites/             — Sprite data, caching, colorization
+```
 
-The built-in editor lets you design your office:
-
-- **Floor** — Full HSB color control
-- **Walls** — Auto-tiling walls with color customization
-- **Tools** — Select, paint, erase, place, eyedropper, pick
-- **Undo/Redo** — 50 levels with Ctrl+Z / Ctrl+Y
-- **Export/Import** — Share layouts as JSON files via the Settings modal
-
-The grid is expandable up to 64×64 tiles. Click the ghost border outside the current grid to grow it.
-
-### Office Assets
-
-All office assets (furniture, floors, walls) are now **fully open-source** and included in this repository under `webview-ui/public/assets/`. No external purchases or imports are needed — everything works out of the box.
-
-Each furniture item lives in its own folder under `assets/furniture/` with a `manifest.json` that declares its sprites, rotation groups, state groups (on/off), and animation frames. Floor tiles are individual PNGs in `assets/floors/`, and wall tile sets are in `assets/walls/`. This modular structure makes it easy to add, remove, or modify assets without touching any code.
-
-To add a new furniture item, create a folder in `webview-ui/public/assets/furniture/` with your PNG sprite(s) and a `manifest.json`, then rebuild. The asset manager (`scripts/asset-manager.html`) provides a visual editor for creating and editing manifests.
-
-Detailed documentation on the manifest format and asset pipeline is coming soon.
-
-Characters are based on the amazing work of [JIK-A-4, Metro City](https://jik-a-4.itch.io/metrocity-free-topdown-character-pack).
-
-## How It Works
-
-Pixel Agents watches Claude Code's JSONL transcript files to track what each agent is doing. When an agent uses a tool (like writing a file or running a command), the extension detects it and updates the character's animation accordingly. No modifications to Claude Code are needed — it's purely observational.
-
-The webview runs a lightweight game loop with canvas rendering, BFS pathfinding, and a character state machine (idle → walk → type/read). Everything is pixel-perfect at integer zoom levels.
-
-## Tech Stack
-
-- **Extension**: TypeScript, VS Code Webview API, esbuild
-- **Webview**: React 19, TypeScript, Vite, Canvas 2D
-
-## Known Limitations
-
-- **Agent-terminal sync** — the way agents are connected to Claude Code terminal instances is not super robust and sometimes desyncs, especially when terminals are rapidly opened/closed or restored across sessions.
-- **Heuristic-based status detection** — Claude Code's JSONL transcript format does not provide clear signals for when an agent is waiting for user input or when it has finished its turn. The current detection is based on heuristics (idle timers, turn-duration events) and often misfires — agents may briefly show the wrong status or miss transitions.
-- **Windows-only testing** — the extension has only been tested on Windows 11. It may work on macOS or Linux, but there could be unexpected issues with file watching, paths, or terminal behavior on those platforms.
-
-## Where This Is Going
-
-The long-term vision is an interface where managing AI agents feels like playing the Sims, but the results are real things built.
-
-- **Agents as characters** you can see, assign, monitor, and redirect, each with visible roles (designer, coder, writer, reviewer), stats, context usage, and tools.
-- **Desks as directories** — drag an agent to a desk to assign it to a project or working directory.
-- **An office as a project** — with a Kanban board on the wall where idle agents can pick up tasks autonomously.
-- **Deep inspection** — click any agent to see its model, branch, system prompt, and full work history. Interrupt it, chat with it, or redirect it.
-- **Token health bars** — rate limits and context windows visualized as in-game stats.
-- **Fully customizable** — upload your own character sprites, themes, and office assets. Eventually maybe even move beyond pixel art into 3D or VR.
-
-For this to work, the architecture needs to be modular at every level:
-
-- **Platform-agnostic**: VS Code extension today, Electron app, web app, or any other host environment tomorrow.
-- **Agent-agnostic**: Claude Code today, but built to support Codex, OpenCode, Gemini, Cursor, Copilot, and others through composable adapters.
-- **Theme-agnostic**: community-created assets, skins, and themes from any contributor.
-
-We're actively working on the core module and adapter architecture that makes this possible. If you're interested to talk about this further, please visit our [Discussions Section](https://github.com/pablodelucca/pixel-agents/discussions).
-
-
-## Community & Contributing
-
-We use **[GitHub Discussions](https://github.com/pablodelucca/pixel-agents/discussions)** for questions, feature ideas, and conversations. **[Issues](https://github.com/pablodelucca/pixel-agents/issues)** are for bug reports only.
-
-If something is broken, open an issue. For everything else, start a discussion.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for instructions on how to contribute.
-
-Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating.
-
-## Supporting the Project
-
-If you find Pixel Agents useful, consider supporting its development:
-
-<a href="https://github.com/sponsors/pablodelucca">
-  <img src="https://img.shields.io/badge/Sponsor-GitHub-ea4aaa?logo=github" alt="GitHub Sponsors">
-</a>
-<a href="https://ko-fi.com/pablodelucca">
-  <img src="https://img.shields.io/badge/Support-Ko--fi-ff5e5b?logo=ko-fi" alt="Ko-fi">
-</a>
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=pablodelucca/pixel-agents&type=Date)](https://www.star-history.com/?repos=pablodelucca%2Fpixel-agents&type=date&legend=bottom-right)
+**Key concepts:**
+- One agent per terminal, bound 1:1 to a Claude Code session
+- JSONL transcripts at `~/.claude/projects/<project-hash>/<session-id>.jsonl`
+- Layout persisted to `~/.pixel-agents/layout.json` (user-level, cross-workspace)
+- Agent/user sync via `~/.pixel-agents/agents.json` and `users.json`
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+MIT

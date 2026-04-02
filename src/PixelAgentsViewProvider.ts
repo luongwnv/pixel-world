@@ -12,6 +12,7 @@ import {
   sendExistingAgents,
   sendLayout,
 } from './agentManager.js';
+import { AgentSyncManager } from './agentSyncManager.js';
 import {
   loadCharacterSprites,
   loadDefaultLayout,
@@ -61,6 +62,9 @@ export class PixelAgentsViewProvider implements vscode.WebviewViewProvider {
   // Cross-window layout sync
   layoutWatcher: LayoutWatcher | null = null;
 
+  // Cross-window agent sync
+  agentSyncManager: AgentSyncManager | null = null;
+
   // User activity tracking
   userActivityTracker: UserActivityTracker | null = null;
   userSyncManager: UserSyncManager | null = null;
@@ -78,6 +82,7 @@ export class PixelAgentsViewProvider implements vscode.WebviewViewProvider {
 
   private persistAgents = (): void => {
     persistAgents(this.agents, this.context);
+    this.agentSyncManager?.sync();
   };
 
   resolveWebviewView(webviewView: vscode.WebviewView) {
@@ -150,6 +155,7 @@ export class PixelAgentsViewProvider implements vscode.WebviewViewProvider {
         // Store seat assignments in a separate key (never touched by persistAgents)
         console.log(`[Pixel Agents] saveAgentSeats:`, JSON.stringify(message.seats));
         this.context.workspaceState.update(WORKSPACE_KEY_AGENT_SEATS, message.seats);
+        this.agentSyncManager?.updateAgentMeta(message.seats as Record<number, { palette: number; hueShift: number; seatId: string | null }>);
       } else if (message.type === 'saveLayout') {
         this.layoutWatcher?.markOwnWrite();
         writeLayoutToFile(message.layout as Record<string, unknown>);
@@ -310,7 +316,6 @@ export class PixelAgentsViewProvider implements vscode.WebviewViewProvider {
 
         // Create (or re-create) the user character on every webview ready
         this.userActivityTracker?.dispose();
-        this.userSyncManager?.dispose();
         this.userAgentId = this.nextAgentId.current++;
         this.nextTerminalIndex.current++;
         this.webview?.postMessage({
@@ -323,11 +328,32 @@ export class PixelAgentsViewProvider implements vscode.WebviewViewProvider {
           () => this.webview,
           this.context,
         );
-        this.userSyncManager = new UserSyncManager(
-          () => this.webview,
-          this.nextAgentId,
-        );
+
+        // Cross-window user sync (create once, reuse across webview reloads)
+        if (!this.userSyncManager) {
+          this.userSyncManager = new UserSyncManager(
+            () => this.webview,
+            this.nextAgentId,
+          );
+        } else {
+          // Webview was recreated — reset remote state so remote users
+          // are re-created on next poll
+          this.userSyncManager.resetRemoteState();
+        }
         this.userActivityTracker.setSyncManager(this.userSyncManager);
+
+        // Cross-window agent sync (create once, reuse across webview reloads)
+        if (!this.agentSyncManager) {
+          this.agentSyncManager = new AgentSyncManager(
+            () => this.webview,
+            () => this.agents,
+            this.nextAgentId,
+          );
+        } else {
+          // Webview was recreated (panel collapse/expand) — reset remote state
+          // so all remote agents are re-created on next poll
+          this.agentSyncManager.resetRemoteState();
+        }
       } else if (message.type === 'openSessionsFolder') {
         const projectDir = getProjectDirPath();
         if (projectDir && fs.existsSync(projectDir)) {
@@ -464,6 +490,8 @@ export class PixelAgentsViewProvider implements vscode.WebviewViewProvider {
   }
 
   dispose() {
+    this.agentSyncManager?.dispose();
+    this.agentSyncManager = null;
     this.userActivityTracker?.dispose();
     this.userActivityTracker = null;
     this.userSyncManager?.dispose();

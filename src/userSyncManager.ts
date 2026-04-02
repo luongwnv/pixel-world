@@ -6,8 +6,8 @@ import * as vscode from 'vscode';
 import { LAYOUT_FILE_DIR } from './constants.js';
 
 const USERS_FILE_NAME = 'users.json';
-const SYNC_POLL_INTERVAL_MS = 1500;
-const STALE_TIMEOUT_MS = 10_000;
+const SYNC_POLL_INTERVAL_MS = 500;
+const STALE_TIMEOUT_MS = 300_000;
 
 export interface UserEntry {
   windowName: string;
@@ -30,9 +30,13 @@ export class UserSyncManager implements vscode.Disposable {
   private readonly windowId: string;
   private readonly windowName: string;
   private pollTimer: ReturnType<typeof setInterval> | null = null;
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private knownRemoteIds = new Map<string, number>(); // windowId → agentId
   private nextRemoteId: { current: number };
   private disposed = false;
+
+  /** Last written entry — used for heartbeat refreshes */
+  private lastEntry: UserEntry | null = null;
 
   constructor(
     private readonly getWebview: () => vscode.Webview | undefined,
@@ -43,21 +47,51 @@ export class UserSyncManager implements vscode.Disposable {
       vscode.workspace.workspaceFolders?.[0]?.name ?? path.basename(process.cwd());
     this.nextRemoteId = nextAgentIdRef;
 
-    // Start polling for remote users
+    // Heartbeat: refresh own timestamp every 5s so we don't go stale
+    this.heartbeat();
+    this.heartbeatTimer = setInterval(() => this.heartbeat(), 5000);
+
+    // Poll for remote users every 500ms
     this.pollTimer = setInterval(() => this.poll(), SYNC_POLL_INTERVAL_MS);
 
-    // Clean up own entry on dispose
     console.log(`[UserSync] Started for window "${this.windowName}" (${this.windowId})`);
   }
 
   /** Called by UserActivityTracker when local activity changes */
   updateLocalActivity(activity: string, activityType: 'typing' | 'reading' | ''): void {
-    this.writeEntry({
+    const entry: UserEntry = {
       windowName: this.windowName,
       activity,
       activityType,
       timestamp: Date.now(),
-    });
+    };
+    this.lastEntry = entry;
+    this.writeEntry(entry);
+  }
+
+  /**
+   * Reset remote state so all remote users are re-created on next poll.
+   * Must be called when the webview is recreated (e.g. panel collapse/expand).
+   */
+  resetRemoteState(): void {
+    this.knownRemoteIds.clear();
+    console.log('[UserSync] Remote state reset (webview recreated)');
+  }
+
+  /** Refresh timestamp periodically so other windows don't consider us stale */
+  private heartbeat(): void {
+    if (!this.lastEntry) {
+      // No activity yet — write idle entry
+      this.lastEntry = {
+        windowName: this.windowName,
+        activity: '',
+        activityType: '',
+        timestamp: Date.now(),
+      };
+    } else {
+      this.lastEntry.timestamp = Date.now();
+    }
+    this.writeEntry(this.lastEntry);
   }
 
   private writeEntry(entry: UserEntry): void {
@@ -87,7 +121,7 @@ export class UserSyncManager implements vscode.Disposable {
         }
       }
 
-      const tmpPath = filePath + '.tmp';
+      const tmpPath = `${filePath}.${this.windowId}.tmp`;
       fs.writeFileSync(tmpPath, JSON.stringify(data), 'utf-8');
       fs.renameSync(tmpPath, filePath);
     } catch (err) {
@@ -165,7 +199,7 @@ export class UserSyncManager implements vscode.Disposable {
       if (!fs.existsSync(filePath)) return;
       const data = JSON.parse(fs.readFileSync(filePath, 'utf-8')) as UsersFile;
       delete data[this.windowId];
-      const tmpPath = filePath + '.tmp';
+      const tmpPath = `${filePath}.${this.windowId}.tmp`;
       fs.writeFileSync(tmpPath, JSON.stringify(data), 'utf-8');
       fs.renameSync(tmpPath, filePath);
     } catch {
@@ -178,6 +212,10 @@ export class UserSyncManager implements vscode.Disposable {
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
+    }
+    if (this.heartbeatTimer) {
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
     }
     this.removeOwnEntry();
   }

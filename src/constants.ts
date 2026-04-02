@@ -41,6 +41,11 @@ export const WORKSPACE_KEY_AGENT_SEATS = 'pixel-agents.agentSeats';
 export const WORKSPACE_KEY_LAYOUT = 'pixel-agents.layout';
 export const TERMINAL_NAME_PREFIX = 'Claude Code';
 
+// ── Cross-Window Agent Sync ────────────────────────────────
+export const AGENT_SYNC_FILE_NAME = 'agents.json';
+export const AGENT_SYNC_POLL_INTERVAL_MS = 500;
+export const AGENT_SYNC_STALE_TIMEOUT_MS = 300_000;
+
 // ── User Activity Tracker ──────────────────────────────────
 export const USER_IDLE_TIMEOUT_MS = 5000;
 export const USER_ACTIVITY_DEBOUNCE_MS = 150;

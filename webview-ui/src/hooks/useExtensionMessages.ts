@@ -50,6 +50,7 @@ export interface ExtensionMessageState {
   agents: number[];
   copilotAgentIds: Set<number>;
   userAgentIds: Set<number>;
+  remoteAgentIds: Set<number>;
   remoteUserNames: Map<number, string>;
   selectedAgent: number | null;
   agentTools: Record<number, ToolActivity[]>;
@@ -65,7 +66,7 @@ export interface ExtensionMessageState {
 function saveAgentSeats(os: OfficeState): void {
   const seats: Record<number, { palette: number; hueShift: number; seatId: string | null }> = {};
   for (const ch of os.characters.values()) {
-    if (ch.isSubagent) continue;
+    if (ch.isSubagent || ch.isRemoteAgent) continue;
     seats[ch.id] = { palette: ch.palette, hueShift: ch.hueShift, seatId: ch.seatId };
   }
   vscode.postMessage({ type: 'saveAgentSeats', seats });
@@ -81,6 +82,8 @@ export function useExtensionMessages(
   const [copilotAgentIds, setCopilotAgentIds] = useState<Set<number>>(new Set());
   const userAgentIdsRef = useRef(new Set<number>());
   const [userAgentIds, setUserAgentIds] = useState<Set<number>>(new Set());
+  const remoteAgentIdsRef = useRef(new Set<number>());
+  const [remoteAgentIds, setRemoteAgentIds] = useState<Set<number>>(new Set());
   const remoteUserNamesRef = useRef(new Map<number, string>());
   const [remoteUserNames, setRemoteUserNames] = useState<Map<number, string>>(new Map());
   const [selectedAgent, setSelectedAgent] = useState<number | null>(null);
@@ -148,9 +151,10 @@ export function useExtensionMessages(
         const isCopilot = msg.isCopilot as boolean | undefined;
         const isUser = msg.isUser as boolean | undefined;
         const isRemoteUser = msg.isRemoteUser as boolean | undefined;
+        const isRemoteAgent = msg.isRemoteAgent as boolean | undefined;
         const windowName = msg.windowName as string | undefined;
         setAgents((prev) => (prev.includes(id) ? prev : [...prev, id]));
-        if (!isUser && !isRemoteUser) setSelectedAgent(id);
+        if (!isUser && !isRemoteUser && !isRemoteAgent) setSelectedAgent(id);
         if (isCopilot) {
           copilotAgentIdsRef.current.add(id);
           setCopilotAgentIds(new Set(copilotAgentIdsRef.current));
@@ -159,11 +163,25 @@ export function useExtensionMessages(
           userAgentIdsRef.current.add(id);
           setUserAgentIds(new Set(userAgentIdsRef.current));
         }
-        if (isRemoteUser && windowName) {
+        if (isRemoteAgent) {
+          remoteAgentIdsRef.current.add(id);
+          setRemoteAgentIds(new Set(remoteAgentIdsRef.current));
+        }
+        if ((isRemoteUser || isRemoteAgent) && windowName) {
           remoteUserNamesRef.current.set(id, windowName);
           setRemoteUserNames(new Map(remoteUserNamesRef.current));
         }
-        os.addAgent(id, undefined, undefined, undefined, undefined, folderName);
+        if (isRemoteAgent) {
+          // Use palette/hueShift from the originating window
+          const palette = msg.palette as number | undefined;
+          const hueShift = msg.hueShift as number | undefined;
+          os.addAgent(id, palette, hueShift, undefined, false, folderName);
+          // Mark the character as remote
+          const ch = os.characters.get(id);
+          if (ch) ch.isRemoteAgent = true;
+        } else {
+          os.addAgent(id, undefined, undefined, undefined, undefined, folderName);
+        }
         saveAgentSeats(os);
       } else if (msg.type === 'agentClosed') {
         const id = msg.id as number;
@@ -176,6 +194,10 @@ export function useExtensionMessages(
         if (userAgentIdsRef.current.has(id)) {
           userAgentIdsRef.current.delete(id);
           setUserAgentIds(new Set(userAgentIdsRef.current));
+        }
+        if (remoteAgentIdsRef.current.has(id)) {
+          remoteAgentIdsRef.current.delete(id);
+          setRemoteAgentIds(new Set(remoteAgentIdsRef.current));
         }
         if (remoteUserNamesRef.current.has(id)) {
           remoteUserNamesRef.current.delete(id);
@@ -448,6 +470,7 @@ export function useExtensionMessages(
     agents,
     copilotAgentIds,
     userAgentIds,
+    remoteAgentIds,
     remoteUserNames,
     selectedAgent,
     agentTools,

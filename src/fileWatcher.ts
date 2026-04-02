@@ -208,8 +208,9 @@ function scanForNewJsonlFiles(
             persistAgents,
           );
         } else {
-          // No pending agent → try to adopt the focused terminal
+          // No pending agent → try to adopt the focused terminal, or auto-create
           const activeTerminal = vscode.window.activeTerminal;
+          let adopted = false;
           if (activeTerminal) {
             let owned = false;
             for (const agent of agents.values()) {
@@ -233,7 +234,23 @@ function scanForNewJsonlFiles(
                 webview,
                 persistAgents,
               );
+              adopted = true;
             }
+          }
+          if (!adopted) {
+            // Auto-create agent for new JSONL file (e.g. Claude Code panel, external terminal)
+            autoCreateAgentForFile(
+              file,
+              projectDir,
+              nextAgentIdRef,
+              agents,
+              fileWatchers,
+              pollingTimers,
+              waitingTimers,
+              permissionTimers,
+              webview,
+              persistAgents,
+            );
           }
         }
       }
@@ -279,6 +296,57 @@ function adoptTerminalForFile(
 
   console.log(
     `[Pixel Agents] Agent ${id}: adopted terminal "${terminal.name}" for ${path.basename(jsonlFile)}`,
+  );
+  webview?.postMessage({ type: 'agentCreated', id });
+
+  startFileWatching(
+    id,
+    jsonlFile,
+    agents,
+    fileWatchers,
+    pollingTimers,
+    waitingTimers,
+    permissionTimers,
+    webview,
+  );
+  readNewLines(id, agents, waitingTimers, permissionTimers, webview);
+}
+
+function autoCreateAgentForFile(
+  jsonlFile: string,
+  projectDir: string,
+  nextAgentIdRef: { current: number },
+  agents: Map<number, AgentState>,
+  fileWatchers: Map<number, fs.FSWatcher>,
+  pollingTimers: Map<number, ReturnType<typeof setInterval>>,
+  waitingTimers: Map<number, ReturnType<typeof setTimeout>>,
+  permissionTimers: Map<number, ReturnType<typeof setTimeout>>,
+  webview: vscode.Webview | undefined,
+  persistAgents: () => void,
+): void {
+  const id = nextAgentIdRef.current++;
+  const agent: AgentState = {
+    id,
+    terminalRef: null,
+    projectDir,
+    jsonlFile,
+    fileOffset: 0,
+    lineBuffer: '',
+    activeToolIds: new Set(),
+    activeToolStatuses: new Map(),
+    activeToolNames: new Map(),
+    activeSubagentToolIds: new Map(),
+    activeSubagentToolNames: new Map(),
+    isWaiting: false,
+    permissionSent: false,
+    hadToolsInTurn: false,
+  };
+
+  agents.set(id, agent);
+  persistAgents();
+
+  console.log(
+    `[Pixel Agents] Agent ${id}: auto-created for ${path.basename(jsonlFile)}`,
   );
   webview?.postMessage({ type: 'agentCreated', id });
 

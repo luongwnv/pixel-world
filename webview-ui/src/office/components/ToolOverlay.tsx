@@ -11,6 +11,7 @@ interface ToolOverlayProps {
   agents: number[];
   copilotAgentIds: Set<number>;
   userAgentIds: Set<number>;
+  remoteAgentIds: Set<number>;
   remoteUserNames: Map<number, string>;
   agentTools: Record<number, ToolActivity[]>;
   subagentCharacters: SubagentCharacter[];
@@ -50,6 +51,7 @@ export function ToolOverlay({
   agents,
   copilotAgentIds,
   userAgentIds,
+  remoteAgentIds,
   remoteUserNames,
   agentTools,
   subagentCharacters,
@@ -130,6 +132,10 @@ export function ToolOverlay({
           } else {
             activityText = userActivity;
           }
+        } else if (remoteAgentIds.has(id)) {
+          const remoteName = remoteUserNames.get(id);
+          titleText = remoteName ? `Agent (${remoteName})` : `Remote Agent`;
+          activityText = getActivityText(id, agentTools, ch.isActive);
         } else {
           titleText = ch.folderName ?? `Agent #${id}`;
           activityText = getActivityText(id, agentTools, ch.isActive);
@@ -161,7 +167,7 @@ export function ToolOverlay({
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              pointerEvents: isSelected ? 'auto' : 'none',
+              pointerEvents: isSelected || isHovered ? 'auto' : 'none',
               opacity: alwaysShowOverlay && !isSelected && !isHovered ? (isSub ? 0.5 : 0.75) : 1,
               zIndex: isSelected ? 'var(--pixel-overlay-selected-z)' : 'var(--pixel-overlay-z)',
             }}
@@ -178,8 +184,8 @@ export function ToolOverlay({
                 borderRadius: 0,
                 padding: isSelected ? '3px 6px 3px 8px' : '3px 8px',
                 boxShadow: 'var(--pixel-shadow)',
-                whiteSpace: 'nowrap',
-                maxWidth: 220,
+                whiteSpace: isHovered || isSelected ? 'normal' : 'nowrap',
+                maxWidth: isHovered || isSelected ? 350 : 220,
               }}
             >
               {dotColor && (
@@ -232,7 +238,7 @@ export function ToolOverlay({
                   </span>
                 )}
               </div>
-              {isSelected && !isSub && !isUser && (
+              {isSelected && !isSub && !isUser && !remoteAgentIds.has(id) && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

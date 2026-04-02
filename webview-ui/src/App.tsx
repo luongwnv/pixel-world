@@ -131,6 +131,7 @@ function App() {
     agents,
     copilotAgentIds,
     userAgentIds,
+    remoteAgentIds,
     remoteUserNames,
     selectedAgent,
     agentTools,
@@ -346,6 +347,7 @@ function App() {
           agents={agents}
           copilotAgentIds={copilotAgentIds}
           userAgentIds={userAgentIds}
+          remoteAgentIds={remoteAgentIds}
           remoteUserNames={remoteUserNames}
           agentTools={agentTools}
           subagentCharacters={subagentCharacters}

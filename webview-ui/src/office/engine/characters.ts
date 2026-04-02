@@ -80,6 +80,7 @@ export function createCharacter(
     seatTimer: 0,
     isSubagent: false,
     parentAgentId: null,
+    isRemoteAgent: false,
     matrixEffect: null,
     matrixEffectTimer: 0,
     matrixEffectSeeds: [],

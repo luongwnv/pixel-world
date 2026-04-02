@@ -187,10 +187,10 @@ export class OfficeState {
    * repeat in balanced rounds with a random hue shift (≥45°).
    */
   private pickDiversePalette(): { palette: number; hueShift: number } {
-    // Count how many non-sub-agents use each base palette (0-5)
+    // Count how many local non-sub-agents use each base palette (0-5)
     const counts = new Array(PALETTE_COUNT).fill(0) as number[];
     for (const ch of this.characters.values()) {
-      if (ch.isSubagent) continue;
+      if (ch.isSubagent || ch.isRemoteAgent) continue;
       counts[ch.palette]++;
     }
     const minCount = Math.min(...counts);
